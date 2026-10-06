@@ -1,72 +1,46 @@
-from flask import Flask, render_template_string, request, redirect
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-produits = []
-credits = []
-
 HTML = """
-<!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>IS KÉVIN</title>
+<html><head><meta name="viewport" content="width=device-width">
+<title>IS</title>
 <style>
-body{font-family:Arial;background:#f5f5f5;padding:15px}
-h1{background:#111;color:#fff;padding:15px;text-align:center;border-radius:10px}
-.card{background:#fff;padding:15px;border-radius:10px;margin:10px 0;box-shadow:0 2px 5px #ccc}
-input,button{width:100%;padding:12px;margin:5px 0;border-radius:8px;border:1px solid #ccc}
-button{background:#111;color:#fff;font-weight:bold}
-.badge{background:#25D366;color:#fff;padding:3px 8px;border-radius:10px;font-size:12px}
-</style>
-</head>
+body{font-family:Arial;text-align:center;padding:20px}
+.box{background:#111;color:#fff;padding:30px;border-radius:15px}
+input{width:80%;padding:15px;margin:10px}
+button{background:#111;color:#fff;padding:15px 30px;border-radius:10px}
+</style></head>
 <body>
-<h1>IS KÉVIN 👕👗</h1>
-<div class="card">
-<h3>➕ Ajouter Produit</h3>
-<form method="post" action="/add">
-<input name="nom" placeholder="Nom du vêtement ex: Robe" required>
-<input name="prix" type="number" placeholder="Prix" required>
-<input name="stock" type="number" placeholder="Stock" required>
-<button>Ajouter</button>
-</form>
+<div class="box">
+<h1>Salut moi c'est IS 🤖</h1>
+<p>J'ai été créé par Dah Sie Kevin le 5 octobre 2026 à Irobo</p>
 </div>
-<div class="card">
-<h3>📦 Stock ({{ produits|length }})</h3>
-{% for p in produits %}
-<p><b>{{ p.nom }}</b> - {{ p.prix }} FCFA - Stock: {{ p.stock }}</p>
-{% else %}
-<p>Aucun produit</p>
-{% endfor %}
-</div>
-<div class="card">
-<h3>💳 Crédit Client</h3>
-<form method="post" action="/credit">
-<input name="client" placeholder="Nom client" required>
-<input name="montant" type="number" placeholder="Montant" required>
-<button>Ajouter Crédit</button>
-</form>
-{% for c in credits %}
-<p>{{ c.client }} doit {{ c.montant }} FCFA</p>
-{% endfor %}
-</div>
-</body>
-</html>
+<input id="msg" placeholder="Parle avec IS...">
+<br><button onclick="parler()">Envoyer</button>
+<p id="rep"></p>
+<script>
+async function parler(){
+ let m=document.getElementById('msg').value;
+ let r=await fetch('/chat?message='+m);
+ let d=await r.json();
+ document.getElementById('rep').innerText=d.IS;
+}
+</script>
+</body></html>
 """
 
-@app.route("/")
+@app.route('/')
 def home():
-    return render_template_string(HTML, produits=produits, credits=credits)
+    return HTML
 
-@app.route("/add", methods=["POST"])
-def add():
-    produits.append({"nom":request.form["nom"],"prix":request.form["prix"],"stock":request.form["stock"]})
-    return redirect("/")
+@app.route('/chat')
+def chat():
+    message = request.args.get('message','')
+    reponse = "Salut moi c'est IS j'ai été créé par Dah Sie Kevin le 5 octobre 2026 à Irobo"
+    if message:
+        reponse += f". Tu m'as dit: {message} BOSS!"
+    return jsonify({"IS": reponse})
 
-@app.route("/credit", methods=["POST"])
-def credit():
-    credits.append({"client":request.form["client"],"montant":request.form["montant"]})
-    return redirect("/")
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=10000)
