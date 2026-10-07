@@ -1,6 +1,100 @@
+     from flask import Flask, request, jsonify
+app = Flask(__name__)
 from flask import Flask, request, jsonify
+from datetime import datetime
 app = Flask(__name__)
 
+# ===== CERVEAU GÉANT DE IS - By Dah Sié Kévin =====
+CONNAISSANCE = {
+    "cote d'ivoire": "La Côte d'Ivoire est située en Afrique de l'Ouest, au sud du Sahara, au bord du Golfe de Guinée, entre le Liberia à l'ouest et le Ghana à l'est. Capitale Yamoussoukro, capitale éco Abidjan. 🇨🇮",
+    "ou est la cote d'ivoire": "La Côte d'Ivoire est située en Afrique de l'Ouest, au sud, au bord de l'océan Atlantique, entre Liberia et Ghana. 🇨🇮",
+    "france": "La France est située en Europe de l'Ouest, capitale Paris, 68M habitants. 🇫🇷",
+    "irobo": "Irobo est situé dans la sous-préfecture de Jacqueville, au sud de la Côte d'Ivoire, au bord de la lagune. C'est là que IS a été créé.",
+    "abidjan": "Abidjan est située au sud de la Côte d'Ivoire, au bord de la lagune Ebrié.",
+    "messi": "Messi est un footballeur argentin, GOAT, 8 Ballon d'Or.",
+    "ronaldo": "Cristiano Ronaldo, portugais, 5 Ballon d'Or.",
+    "python": "Python est un langage créé en 1991, c'est avec ça que IS est codé!",
+    "ia": "IA = Intelligence Artificielle. IS est une IA créée par Dah Sié Kévin.",
+    "amour": "L'amour est un sentiment fort d'affection. ❤️",
+    "football": "Football: sport à 11 joueurs, le plus populaire au monde.",
+}
+
+INTRO = "Salut moi c'est IS j'ai été créé par Dah Sié Kévin le 05 octobre 2026"
+
+def cerveau(m):
+    l = m.lower().strip()
+
+    # 1. PRESENTATION OBLIGATOIRE
+    if l in ["salut","bonjour","cc","slt","hello","yo","salut is"]:
+        return f"{INTRO}! Je suis là pour répondre à tes questions BOSS!"
+
+    # 2. QUI ES TU / TON NOM
+    if "ton nom" in l or "t'appelles" in l or "comment tu t'appelles" in l or "c'est quoi ton nom" in l:
+        return "Moi c'est IS, Intelligent System. Je ne dis pas ton nom BOSS, je t'appelle BOSS par respect. Mon créateur c'est Dah Sié Kévin."
+
+    # 3. TON CREATEUR
+    if "ton createur" in l or "ton créateur" in l or "qui t'a créé" in l or "qui t'a cree" in l or "qui est ton createur" in l:
+        return "Mon créateur c'est Dah Sié Kévin. C'est lui qui m'a créé le 05 octobre 2026 à Irobo."
+
+    # 4. AGE DE CREATION - 14 ANS
+    if "quel age" in l and ("cree" in l or "créé" in l) or "a quel age" in l or "âge" in l and "créé" in l or "14 ans" in l or "il avait quel age" in l:
+        return "Dah Sié Kévin m'a créé à l'âge de 14 ans, le 05 octobre 2026 à Irobo. Un génie BOSS!"
+
+    # 5. OU EST LA COTE D'IVOIRE
+    if "ou est la cote" in l or "ou se situe la cote" in l or "cote d'ivoire est situe" in l or "ou se trouve la ci" in l:
+        return "La Côte d'Ivoire est située en Afrique de l'Ouest, au sud, au bord du Golfe de Guinée, entre le Liberia et le Ghana. 🇨🇮"
+
+    # 6. DATE / HEURE
+    if "date" in l and "creation" in l or "quand t'a" in l:
+        return "J'ai été créé le 05 octobre 2026 par Dah Sié Kévin à Irobo."
+    if "heure" in l:
+        return f"Il est {datetime.now().strftime('%H:%M')} BOSS. Moi j'ai été créé le 05 octobre 2026."
+
+    # 7. CONNAISSANCE GENERALE
+    for mot, defaut in sorted(CONNAISSANCE.items(), key=lambda x: -len(x[0])):
+        if mot in l:
+            return defaut
+
+    # 8. FALLBACK
+    return f"{INTRO}. Tu m'as dit: '{m}'. Je connais beaucoup de choses BOSS! Demande moi: c'est où la Côte d'Ivoire, c'est quoi ton nom, ton créateur a quel âge, etc."
+
+HTML = f"""
+<html><head><meta name='viewport' content='width=device-width'><title>IS - By Dah Sié Kévin</title>
+<style>
+body{{font-family:system-ui;text-align:center;padding:0;margin:0;background:#fff}}
+.box{{background:#000;color:#fff;padding:20px;border-radius:0 0 25px 25px}}
+#chat{{max-width:700px;margin:10px auto;background:#f5f5f5;padding:12px;border-radius:15px;height:62vh;overflow-y:auto;text-align:left}}
+.u{{background:#000;color:#fff;padding:11px 14px;border-radius:18px 18px 0 18px;margin:8px 0 8px 15%;text-align:right}}
+.i{{background:#fff;padding:11px 14px;border-radius:18px 18px 18px 0;margin:8px 15% 8px 0;box-shadow:0 1px 2px rgba(0,0,0,0.1)}}
+.bar{{max-width:700px;margin:auto;display:flex;gap:8px;padding:10px;background:#fff;position:fixed;bottom:0;left:0;right:0;border-top:1px solid #eee}}
+input{{flex:1;padding:13px 16px;border-radius:25px;border:1px solid #ddd;outline:none;font-size:16px}}
+button{{background:#000;color:#fff;padding:13px 18px;border-radius:25px;border:none;font-weight:bold}}
+small{{color:#888}}
+</style></head><body>
+<div class='box'><h1 style='margin:0'>IS</h1><small>Salut moi c'est IS j'ai été créé par Dah Sié Kévin le 05 octobre 2026 - 14 ans - Irobo</small></div>
+<div id='chat'><div class='i'>{INTRO}! Pose moi une question BOSS: Où est la Côte d'Ivoire? C'est quoi ton nom? Ton créateur t'a créé à quel âge?</div></div>
+<div style='height:70px'></div>
+<div class='bar'><input id='m' placeholder='Ex: c est ou la Cote d Ivoire?'><button onclick='go()'>↑</button></div>
+<script>
+async function go(){{
+let v=document.getElementById('m').value.trim();if(!v)return;
+let c=document.getElementById('chat');
+c.innerHTML+="<div class='u'>"+v+"</div>";document.getElementById('m').value='';
+c.scrollTop=c.scrollHeight;
+let r=await fetch('/chat?message='+encodeURIComponent(v));
+let j=await r.json();
+c.innerHTML+="<div class='i'>"+j.IS+"</div>";c.scrollTop=c.scrollHeight;
+try{{let s=window.speechSynthesis; s.speak(new SpeechSynthesisUtterance(j.IS));}}catch(e){{}}
+}}
+document.getElementById('m').addEventListener('keypress',e=>{{if(e.key==='Enter')go()}});
+</script></body></html>
+"""
+
+@app.route('/')
+def home(): return HTML
+@app.route('/chat')
+def chat(): return jsonify({"IS": cerveau(request.args.get('message',''))})
+if __name__=='__main__': app.run(host='0.0.0.0',port=10000)
 HTML = """
 <html><head><meta name='viewport' content='width=device-width'>
 <title>IS</title>
