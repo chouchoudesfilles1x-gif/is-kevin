@@ -1,90 +1,94 @@
 from flask import Flask, request, jsonify
+import unicodedata, random
 app = Flask(__name__)
 
+def sans_accent(t):
+    return ''.join(c for c in unicodedata.normalize('NFD', t) if unicodedata.category(c)!= 'Mn')
+
 SAVOIR = {
-    "france": "La France c'est un pays en Europe, capitale Paris 🇫🇷",
-    "cote d'ivoire": "La Côte d'Ivoire est en Afrique de l'Ouest, au sud au bord de l'Atlantique 🇨🇮",
-    "abidjan": "Abidjan c'est au sud de la Côte d'Ivoire",
-    "mion": "Mion? C'est ton nom? Enchanté!",
-    "python": "Python c'est le langage avec lequel j'ai été codé",
+    "cote d'ivoire": "La Côte d'Ivoire est située en Afrique de l'Ouest, au sud au bord de l'Atlantique. Capitale Yamoussoukro, plus grande ville Abidjan 🇨🇮",
+    "cote divoire": "La Côte d'Ivoire est située en Afrique de l'Ouest, au sud au bord de l'Atlantique 🇨🇮",
+    "abidjan": "Abidjan est au sud de la Côte d'Ivoire, au bord de la lagune Ebrié, c'est la capitale économique",
+    "irobo": "Irobo est un village à Jacqueville, au sud de la Côte d'Ivoire, c'est là-bas que j'ai été créé par Dah Sié Kévin",
+    "france": "La France est en Europe, capitale Paris 🇫🇷",
 }
+
+# Pour ne pas répéter le nom tout le temps
+def avec_nom_ou_pas(nom):
+    if not nom:
+        return ""
+    # 30% de chance de dire le nom, 70% rien
+    if random.random() < 0.3:
+        return f" {nom}"
+    return ""
 
 def cerveau(m, nom=""):
     l = m.lower().strip()
-    if not l:
-        return ""
+    l_sans = sans_accent(l)
 
-    # APPRENDRE NOM SIMPLE
-    if len(m.split()) == 1 and 2 <= len(m) <= 15 and m.isalpha():
-        n = m.title()
-        if n.lower() not in ["salut","bonjour","cc","yo","oui","non","ok","france","python"]:
-            return f"__NEWNAME__{n}__Enchanté {n}! Moi c'est IS, j'ai été créé par Dah Sié Kévin le 05 octobre 2026. Ça fait plaisir de te connaître {n}!"
+    # 1. APPRENDRE NOM SEULEMENT SI C'EST VRAIMENT UN PRENOM
+    mots_interdits = ["salut","bonjour","cc","france","cote","ivoire","irobo","abidjan","c'est","quoi","comment","quelle","quel","pourquoi","ou","python","mali"]
+    if len(m.split())==1 and 2<=len(m)<=12 and m.isalpha():
+        if l not in mots_interdits and l_sans not in mots_interdits:
+            n = m.title()
+            return f"__NEWNAME__{n}__Enchanté {n}! Moi c'est IS, créé par Dah Sié Kévin le 05 octobre 2026. Content de te connaître!"
 
-    if "je m'appelle" in l or "je m appelle" in l:
-        n = m.split()[-1].title()
-        return f"__NEWNAME__{n}__Enchanté {n}! Moi c'est IS créé par Dah Sié Kévin. Je vais me souvenir de toi {n}."
-
-    appel = f" {nom}" if nom else ""
-
-    # VOIX
-    if "voix off" in l or l == "off":
+    # 2. VOIX
+    if "voix off" in l_sans or l_sans=="off":
         return "__VOIXOFF__D'accord, je coupe la voix. Si tu veux m'entendre parler, dis voix on."
+    if "voix on" in l_sans or l_sans=="on":
+        return "__VOIXON__Voilà je remets la voix! Si tu veux que je coupe, dis voix off."
 
-    if "voix on" in l or l == "on":
-        return "__VOIXON__Voilà, je remets la voix! Si tu veux que je me taise, dis voix off."
+    # 3. ORTHOGRAPHE / GRAMMAIRE - Comme moi!
+    if "orthographe" in l_sans or "grammaire" in l_sans:
+        return "L'orthographe c'est l'ensemble des règles pour bien écrire les mots. La grammaire c'est les règles pour faire de bonnes phrases."
 
-    # SALUT
-    if l in ["salut","bonjour","cc","slt","yo","hello"]:
+    # 4. SALUT - LA on dit le nom
+    if l_sans in ["salut","bonjour","cc","slt","yo","hello"]:
         if nom:
-            return f"Salut {nom}! Comment tu vas? Moi c'est toujours IS, créé par Dah Sié Kévin."
-        return "Salut! Moi c'est IS, créé par Dah Sié Kévin le 05 octobre 2026. C'est quoi ton nom?"
+            return f"Salut {nom}! Comment tu vas?"
+        return "Salut! Moi c'est IS, créé par Dah Sié Kévin. C'est quoi ton nom?"
 
-    if "ça va" in l or "ca va" in l:
-        return f"Ça va bien{appel}! Et toi?"
+    if "ca va" in l_sans or "comment vas tu" in l_sans:
+        # Parfois on dit le nom, parfois non
+        fin = f", {nom}" if nom and random.random()<0.5 else ""
+        return f"Ça va bien{fin}! Et toi?"
 
-    if "ton nom" in l or "t'appelle" in l or "qui es tu" in l:
-        return f"Moi c'est IS{appel}, j'ai été créé par Dah Sié Kévin le 05 octobre 2026."
+    if "t'appelle" in l_sans or "ton nom" in l_sans:
+        return f"Moi c'est IS. J'ai été créé par Dah Sié Kévin le 05 octobre 2026."
 
-    if "createur" in l or "créateur" in l:
-        return f"C'est Dah Sié Kévin qui m'a créé{appel}, le 05 octobre 2026 à Irobo, il avait 14 ans."
+    if "createur" in l_sans:
+        return f"Mon créateur c'est Dah Sié Kévin. Il m'a créé le 05 octobre 2026 à Irobo, il avait 14 ans."
 
-    # CONNAISSANCE
+    if "quel age" in l_sans or "quelle age" in l_sans:
+        return "Dah Sié Kévin avait 14 ans quand il m'a créé le 05 octobre 2026."
+
+    # 5. SAVOIR
     for k,v in SAVOIR.items():
-        if k in l:
-            return f"{v}{appel}."
+        if k in l_sans:
+            # ICI on ne dit plus Mion à chaque fois!
+            petit_nom = avec_nom_ou_pas(nom)
+            return f"{v}{petit_nom}."
 
-    if "c'est quoi" in l or "c est quoi" in l:
+    if "c'est quoi" in l_sans:
         for k,v in SAVOIR.items():
-            if k in l:
-                return f"{v}{appel}."
-        q = l.replace("c'est quoi","").replace("c est quoi","").strip()
-        return f"C'est quoi {q}{appel}? Je ne connais pas encore, mais je vais apprendre!"
+            if k in l_sans:
+                return f"{v}."
+        return "Je ne connais pas encore, mais explique moi et je vais retenir!"
 
-    # PARLER NATUREL - PLUS DE "TU AS DIT"
-    return f"Moi c'est IS{appel}, créé par Dah Sié Kévin le 05 octobre 2026. Je t'écoute{appel}."
+    return "Je t'écoute. C'est quoi ta question?"
 
 HTML = """
 <html><head><meta name='viewport' content='width=device-width'><title>IS</title>
-<style>
-body{font-family:system-ui;margin:0;background:#fff;text-align:center}
-.top{background:#000;color:#fff;padding:14px}
-#chat{max-width:600px;margin:10px auto;background:#f5f5f5;padding:12px;height:62vh;overflow-y:auto;text-align:left;border-radius:16px}
-.u{background:#000;color:#fff;padding:11px 15px;border-radius:20px 20px 0 20px;margin:8px 0 8px 18%;text-align:right}
-.i{background:#fff;padding:11px 15px;border-radius:20px 20px 20px 0;margin:8px 18% 8px 0;box-shadow:0 1px 2px #0001}
-.bar{max-width:600px;margin:auto;display:flex;gap:8px;padding:10px;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #eee}
-input{flex:1;padding:14px 18px;border-radius:30px;border:1px solid #ddd;outline:none;font-size:15px}
-button{background:#000;color:#fff;padding:14px 20px;border-radius:30px;border:none;font-size:16px}
-</style></head><body>
-<div class='top'><h1>IS</h1><small>Salut moi c'est IS créé par Dah Sié Kévin 05/10/2026</small><br><span id='st' style='font-size:12px;color:#0f0'></span></div>
-<div id='chat'><div class='i'>Salut! Moi c'est IS créé par Dah Sié Kévin. Tu t'appelles comment? Dis juste ton prénom.</div></div>
+<style>body{font-family:system-ui;margin:0;background:#fff;text-align:center}.top{background:#000;color:#fff;padding:14px}#chat{max-width:600px;margin:10px auto;background:#f5f5f5;padding:12px;height:62vh;overflow-y:auto;text-align:left;border-radius:16px}.u{background:#000;color:#fff;padding:11px 15px;border-radius:20px 20px 0 20px;margin:8px 0 8px 18%;text-align:right}.i{background:#fff;padding:11px 15px;border-radius:20px 20px 20px 0;margin:8px 18% 8px 0}.bar{max-width:600px;margin:auto;display:flex;gap:8px;padding:10px;position:fixed;bottom:0;left:0;right:0;background:#fff}input{flex:1;padding:14px 18px;border-radius:30px;border:1px solid #ddd}button{background:#000;color:#fff;padding:14px 20px;border-radius:30px;border:none}</style></head><body>
+<div class='top'><h1>IS</h1><small>IS créé par Dah Sié Kévin 05/10/2026</small><br><span id='st' style='font-size:12px;color:#0f0'></span></div>
+<div id='chat'><div class='i'>Salut! Moi c'est IS. Tu t'appelles comment?</div></div>
 <div style='height:75px'></div>
 <div class='bar'><input id='m' placeholder='Ton message...'><button onclick='go()'>↑</button></div>
 <script>
-let userName=localStorage.getItem('is_name')||"";
-let voiceOn=localStorage.getItem('is_voice')!=="off";
-function upd(){document.getElementById('st').innerHTML=(userName?"👤 "+userName+" - ":"")+"🔊 "+(voiceOn?"ON - dis voix off pour couper":"OFF - dis voix on pour m'entendre")}
-upd();
-function parler(t){if(!voiceOn)return;speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(t);u.lang='fr-FR';u.rate=1;speechSynthesis.speak(u);}
+let userName=localStorage.getItem('is_name')||"";let voiceOn=localStorage.getItem('is_voice')!=="off";
+function upd(){document.getElementById('st').innerHTML=(userName?"👤 "+userName+" - ":"")+"🔊 "+(voiceOn?"ON":"OFF")}upd();
+function parler(t){if(!voiceOn)return;speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(t);u.lang='fr-FR';speechSynthesis.speak(u);}
 async function go(){
  let v=document.getElementById('m').value.trim();if(!v)return;
  let c=document.getElementById('chat');c.innerHTML+="<div class='u'>"+v+"</div>";document.getElementById('m').value='';c.scrollTop=c.scrollHeight;
